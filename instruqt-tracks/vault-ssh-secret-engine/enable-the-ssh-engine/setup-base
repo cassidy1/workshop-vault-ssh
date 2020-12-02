@@ -1,0 +1,59 @@
+#!/bin/bash -l
+
+# Enable bash history
+HISTFILE=/root/.bash_history
+set -o history
+
+###########
+# Install sshpass
+###########
+sudo apt-get update
+sudo apt install sshpass
+
+###########
+# Install Vault Client
+###########
+wget https://releases.hashicorp.com/vault/1.6.0/vault_1.6.0_linux_amd64.zip
+unzip vault_1.6.0_linux_amd64.zip
+mv vault /usr/local/bin/vault
+chmod +x /usr/local/bin/vault
+rm -f vault_1.6.0_linux_amd64.zip
+
+###########
+# Install Docker-Compose
+###########
+sudo curl -L "https://github.com/docker/compose/releases/download/1.27.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+
+###########
+# Create a directory for the docker compose .yaml files
+###########
+mkdir app/
+
+###########
+# Set up Docker-Compose file
+###########
+cat <<-EOF > /root/app/docker-compose.yaml
+version: '3.8'
+services:
+  vault:
+    image: 'hashicorp/vault-enterprise:1.5.4_ent'
+    ports:
+      - '8200:8200'
+    environment:
+      - VAULT_DEV_ROOT_TOKEN_ID=root
+EOF
+
+docker-compose -f ~/app/docker-compose.yaml up -d
+
+sleep 10
+
+###########
+# Set up Vault credentials
+###########
+export VAULT_ADDR="http://127.0.0.1:8200"
+export VAULT_TOKEN="root"
+echo "export VAULT_ADDR=$VAULT_ADDR" >> /root/.bashrc
+echo "export VAULT_TOKEN=$VAULT_TOKEN" >> /root/.bashrc
+
+sleep 10
