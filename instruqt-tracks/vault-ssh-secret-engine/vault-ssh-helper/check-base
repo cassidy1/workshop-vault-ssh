@@ -2,6 +2,6 @@
 
 set -e
 
-grep -q "vault.*ssh.*-role.*otp_key_role.*-mode.*otp.*-strict-host-key-checking=no.*ubuntu@ssh" /root/.bash_history || fail-message "You haven't createted a new OTP and SSH into the remote host using sshpass.\."
+# grep -q "vault.*ssh.*-role.*otp_key_role.*-mode.*otp.*-strict-host-key-checking=no.*ubuntu@target-instance" /root/.bash_history || fail-message "You haven't createted a new OTP and SSH into the remote host using sshpass.\."
 
 exit 0

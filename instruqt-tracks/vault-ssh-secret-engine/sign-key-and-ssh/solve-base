@@ -15,6 +15,6 @@ vault write -field=signed_key ssh/sign/my-role \
 chmod 400 signed-cert.pub
 
 # SSH into the host machine using the signed key
-ssh -o StrictHostKeyChecking=no -i signed-cert.pub -i vault ubuntu@ssh
+ssh -o StrictHostKeyChecking=no -i signed-cert.pub -i vault ubuntu@target-instance
 
 exit 0

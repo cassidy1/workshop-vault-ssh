@@ -5,9 +5,9 @@ title: Vault SSH Secret Engine
 teaser: Leverage Vault to secure SSH access to machines
 description: |-
   The Vault SSH secrets engine provides secure authentication and authorization for access to machines via the SSH protocol. The Vault SSH secrets engine helps manage access to machine infrastructure, providing several ways to issue SSH credentials.
-  The Vault SSH secrets engine supports the following modes. This track walks you through setting up and using both options.
-  * Signed SSH Certificates
-  * One-time SSH Passwords
+  This track walks you through setting up Vault SSH access in two ways:
+  * [Signed SSH Certificates](https://www.vaultproject.io/docs/secrets/ssh/signed-ssh-certificates)
+  * [One-time SSH Passwords](https://www.vaultproject.io/docs/secrets/ssh/one-time-ssh-passwords)
 icon: https://storage.googleapis.com/instruqt-frontend/assets/hashicorp/tracks/vault.png
 tags:
 - vault
@@ -23,9 +23,9 @@ challenges:
   id: obuxyjg1aufq
   type: challenge
   title: Enable the SSH Engine
-  teaser: In this challenge we will enable Vault's SSH engine for signing keys
+  teaser: Enable Vault's SSH secrets engine for signing keys.
   assignment: |-
-    First we need to enable the SSH secrets engine within Vault. Vault is already deployed and your token is configured as an enviornement variable.
+    First we need to enable the SSH secrets engine within Vault. Vault is already deployed and your token is configured as an environment variable.
 
     Use this command to enable the SSH secrets engine:
     ```
@@ -53,12 +53,14 @@ challenges:
     }
     EOH
     ```
-    Great! You've set everything up that you need to for starting to use the SSH secrets engine. Now lets configure a machine to trust Vault as a CA and see if we can successfully SSH into it.
+    You can see we're defining a few parameters within the role. You can see a full list of available parameters and their descriptions here - https://www.vaultproject.io/api/secret/ssh#parameters-2
+
+    Great! You've set everything up that you need to use the SSH secrets engine. Now lets configure a machine to trust Vault as a CA and see if we can successfully SSH into it.
   notes:
   - type: text
     contents: In this challenge we will enable Vault's SSH engine for signing keys.
-      The signed SSH certificates is the simplest and most powerful in terms of setup
-      complexity and in terms of being platform agnostic. By leveraging Vault's powerful
+      The signed SSH certificates option is the simplest and most powerful in terms
+      of setup complexity and in terms of being platform agnostic. By leveraging Vault's
       CA capabilities and functionality built into OpenSSH, clients can SSH into target
       hosts using their own local SSH keys.
   tabs:
@@ -76,8 +78,8 @@ challenges:
   id: lijvfy6qcihz
   type: challenge
   title: Sign Key with SSH Engine and SSH to Target
-  teaser: In this challenge we will use the SSH secrets engine set up in the previous
-    step to sign a key with and SSH to a target machine.
+  teaser: Use the SSH secrets engine set up in the previous challenge to sign a key
+    and SSH to a target machine.
   assignment: |-
     First, navigate to the **"Target Instance"** terminal. This is the machine we will be using Vault to SSH into.
 
@@ -114,7 +116,7 @@ challenges:
     ```
     And, lastly SSH into the host machine using the signed key
     ```
-    ssh -o StrictHostKeyChecking=no -i signed-cert.pub -i vault ubuntu@ssh
+    ssh -o StrictHostKeyChecking=no -i signed-cert.pub -i vault ubuntu@target-instance
     ```
     Great! You now successfully used Vault to get a local SSH key signed that allowed you to SSH into a target machine. Let now set up and test a one-time password SSH workflow.
   notes:
@@ -127,7 +129,7 @@ challenges:
   tabs:
   - title: Target Instance
     type: terminal
-    hostname: ssh
+    hostname: target-instance
   - title: Terminal 1
     type: terminal
     hostname: base
@@ -141,9 +143,8 @@ challenges:
 - slug: enable-ssh-otp
   id: x8513xvybjnc
   type: challenge
-  title: Enable the SSH OTP Engine
-  teaser: In this challenge we will create a role for using the one-time password
-    SSH method.
+  title: Add a One Time Password Role
+  teaser: Create a role for using the one-time password SSH method.
   assignment: |-
     In order to leverage Vault's One-Time Password SSH functionality we will need to create a SSH role with a key_type of otp. Since we already enabled the SSH engine on the default path, we can create this role on the existing path.
 
@@ -160,7 +161,7 @@ challenges:
   - type: text
     contents: |-
       In this challenge we will create a role for using the one-time password
-      SSH method.
+      SSH method. The One-Time SSH Password (OTP) SSH secrets engine type allows a Vault server to issue a One-Time Password every time a client wants to SSH into a remote host using a helper command on the remote host to perform verification.
   tabs:
   - title: Terminal 1
     type: terminal
@@ -175,19 +176,14 @@ challenges:
 - slug: vault-ssh-helper
   id: ffkfududtitz
   type: challenge
-  title: Install vault-ssh-helper on the Remote Host and SSH
-  teaser: In this challenge we will install vault-ssh-helper on the remote host and
-    SSH into the remote host
+  title: Install vault-ssh-helper and SSH to Target
+  teaser: Install vault-ssh-helper on the remote host and SSH into the remote host.
   assignment: |-
     First, navigate to the **"Target Instance"** terminal. There you will download the Vault-SSH-Helper which will make a call back to Vault to verify the OTPs being used and mark them as being used in Vault so they are no longer valid.
 
-    Use this command in the **"Target Instance"** terminal
+    Use this command in the **"Target Instance"** terminal to download and unzip the vault-ssh-helper
     ```
-    wget https://releases.hashicorp.com/vault-ssh-helper/0.2.0/vault-ssh-helper_0.2.0_linux_amd64.zip
-    ```
-    And unzip the vault-ssh-helper
-    ```
-    sudo unzip -q vault-ssh-helper_0.2.0_linux_amd64.zip -d /usr/local/bin
+    wget https://releases.hashicorp.com/vault-ssh-helper/0.2.0/vault-ssh-helper_0.2.0_linux_amd64.zip && sudo unzip -q vault-ssh-helper_0.2.0_linux_amd64.zip -d /usr/local/bin
     ```
     Then set the vault-ssh-helper binary to executable
     ```
@@ -210,7 +206,9 @@ challenges:
     allowed_roles = "*"
     EOF
     ```
-    Disable common-auth.
+    You can see all of the configuration options for the vault-ssh-helper here - https://github.com/hashicorp/vault-ssh-helper
+
+    Then disable common-auth.
     ```
     sudo sed -i 's/@include common-auth/# @include common-auth/' /etc/pam.d/sshd
     ```
@@ -234,7 +232,7 @@ challenges:
 
     With a single command you can create a new OTP and SSH into the remote host using sshpass.
     ```
-    vault ssh -role otp_key_role -mode otp -strict-host-key-checking=no ubuntu@ssh
+    vault ssh -role otp_key_role -mode otp -strict-host-key-checking=no ubuntu@target-instance
     ```
 
     Congratulations! You've now completed the Vault SSH Secrets Engine guide. Now go try it out in your enviornment and let us know how it goes!
@@ -248,7 +246,7 @@ challenges:
   tabs:
   - title: Target Instance
     type: terminal
-    hostname: ssh
+    hostname: target-instance
   - title: Terminal 1
     type: terminal
     hostname: base
@@ -259,4 +257,4 @@ challenges:
     port: 8200
   difficulty: basic
   timelimit: 1200
-checksum: "1735111537806796698"
+checksum: "9921988405390651586"

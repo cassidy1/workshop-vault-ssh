@@ -1,9 +1,5 @@
 #!/bin/bash -l
 
-# Enable bash history
-HISTFILE=/root/.bash_history
-set -o history
-
 ###########
 # Install sshpass
 ###########
@@ -37,7 +33,7 @@ cat <<-EOF > /root/app/docker-compose.yaml
 version: '3.8'
 services:
   vault:
-    image: 'hashicorp/vault-enterprise:1.5.4_ent'
+    image: 'hashicorp/vault:1.6.0'
     ports:
       - '8200:8200'
     environment:
